@@ -139,6 +139,7 @@ class SpeechRequest(BaseModel):
     style: Optional[str] = 'default'
     response_format: Optional[str] = 'mp3'
     speed: Optional[float] = 1.0
+    volume: Optional[int] = 10
 
 
 @app.post("/v1/audio/speech")
@@ -146,12 +147,14 @@ def text_to_speech(speechRequest: SpeechRequest):
     text = speechRequest.input
     style = speechRequest.style
     voice = speechRequest.voice
+    volume = speechRequest.volume
     audio_file_pth = f'./voices/{voice}.wav'
 
     (text_hint, save_path, speaker_wav) = predict(text, style, audio_file_pth)
     if save_path is None:
         return None
     audio = AudioSegment.from_file(save_path)
+    audio = audio + volume
     wav_buffer = io.BytesIO()
     response_format = speechRequest.response_format
     audio.export(wav_buffer, format=response_format)
